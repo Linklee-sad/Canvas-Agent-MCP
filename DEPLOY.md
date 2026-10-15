@@ -1,69 +1,62 @@
-# Codex deployment guide
+# Codex 安装：一步一步来
 
-This repository installs a local, read-only Canvas LMS MCP server. Installation, MCP registration, and Canvas account authorization are separate steps. Never report a live Canvas connection based only on a successful installation or tool listing.
+**推荐：直接把 [首页的安装指令](README.md#最简单的安装方法) 发给 Codex，让它操作。** 下面是想自己动手时的步骤。
 
-## 1. Install the repository
+## 第一步：把工具下载到电脑
 
-Use Python 3.11 or newer. Clone the repository into a directory chosen by the user, inspect `AGENTS.md`, then run:
+1. 打开 [项目页面](https://github.com/Linklee-sad/Canvas-Agent-MCP)。
+2. 点击绿色 **Code** 按钮，选择 **Download ZIP**。
+3. 解压下载的文件，记住解压后的文件夹位置。
 
-```bash
-python3 install.py --register-codex
-```
+电脑需要 Python 3.11 或更新版本。如果不知道有没有，直接让 Codex 帮你检查，不用自己猜。
 
-On Windows, use `py -3 install.py --register-codex`. The script finds the checkout using its own location, creates `.venv`, installs the pinned runtime dependencies and this package, runs an offline MCP self-test, and registers a server named `canvas` if the Codex CLI is available. It works when invoked from a different working directory.
+## 第二步：打开安装向导
 
-Do not overwrite an existing MCP entry. If `canvas` is already used for another server, select a new name with `--name canvas-lms`. Repeating registration with the same command and configuration is safe.
+在解压后的文件夹里打开终端，复制对应命令，按回车：
 
-If the Codex CLI is unavailable, the script returns `registered: false` and a portable manual MCP configuration. Apply that configuration in the user's MCP settings using the available client interface; do not claim registration succeeded until it has been read back.
-
-## 2. Configure account access locally
-
-Read [AUTHENTICATION.md](AUTHENTICATION.md). This developer preview consumes an existing institution-approved access credential; it does not include an OAuth login or refresh service. Do not solicit raw access tokens in a chat or commit them to the repository. Ask only for the Canvas HTTPS domain, preferred IANA timezone, and the path to a credential file already provisioned through the approved process. If this information is missing, finish installation and the offline self-test first, then clearly report that account configuration is pending.
-
-With the virtual environment activated, configure an existing UTF-8 credential file or a DOCX containing one credential:
+**Mac / Linux：**
 
 ```bash
-canvas-bridge configure \
-  --base-url https://canvas.example.edu \
-  --token-file /absolute/private/path/credentials.token \
-  --timezone Asia/Hong_Kong
-canvas-bridge register-codex
-canvas-bridge doctor
+python3 setup_canvas.py
 ```
 
-These are examples: use the user's real domain, local file path, and timezone. Never put the token value in arguments. The credential is referenced locally and is not copied into the MCP settings.
+**Windows：**
 
-The default private configuration is `%APPDATA%/canvas-agent-bridge/config.toml` on Windows and `$XDG_CONFIG_HOME/canvas-agent-bridge/config.toml` (normally `~/.config/canvas-agent-bridge/config.toml`) elsewhere. Configuration creation uses restrictive file permissions where supported and refuses to overwrite a different existing file without `--force`.
-
-Use `--config-path` on `configure` and `register-codex` to isolate multiple accounts. The generated MCP entry pins this file with `CANVAS_CONFIG` so it works from any chat or working directory.
-
-## 3. Verify the result
-
-```bash
-canvas-bridge self-test
-canvas-bridge doctor
-canvas-bridge call list_courses
-canvas-bridge call get_upcoming_work --args '{"days":14}'
+```powershell
+py -3 setup_canvas.py
 ```
 
-`self-test` must return `ok: true` and `tool_count: 14`. It does not connect to Canvas. `doctor` must independently return `ok: true` after a successful authenticated request. Handle 401/403/404, unknown submission state, `partial`, and `truncated` explicitly.
+不会在文件夹里打开终端？把文件夹位置告诉 Codex，让它替你运行这一步。
 
-Reconnect the MCP client to refresh tools. A running chat may retain its original tool inventory. The same installation can also be used through `python -m canvas_bridge` or the `canvas-bridge` command.
+向导会问你用哪个助手，输入 **1** 选择 Codex。
 
-## Configuration precedence
+## 第三步：跟着提示填信息
 
-1. Explicit `CANVAS_CONFIG` or a command's `--config-path`.
-2. An existing private `canvas.toml` in a source checkout, for compatibility with early personal installations.
-3. The per-user configuration path above.
+- **学校网址**：填写你学校的 Canvas 网址，通常以 `https://` 开头。
+- **授权文件路径**：填写已有授权文件保存在电脑上的位置。文件可以是文本文件或只放一个授权密钥的 Word 文件。
 
-`CANVAS_BASE_URL`, `CANVAS_TOKEN_FILE`, `CANVAS_TOKEN`, and `CANVAS_TIMEZONE` override their corresponding settings. Environment-only configuration is supported without a TOML file when `CANVAS_CONFIG` is not explicitly set. Do not print environment values. `CANVAS_TOKEN` must be provisioned locally through an approved process.
+没有授权文件时，直接回车跳过，先把工具装好。文件应通过学校批准的方式准备；这个工具目前没有“点击登录”功能。只给助手文件位置，不要发送里面的密钥。
 
-## Updates and troubleshooting
+向导会自动安装、检查功能并尝试添加到 Codex。首次安装可能需要几分钟。截止时间默认按香港/北京时间显示，其他地区可让助手调整。
 
-- Pull an approved update and rerun `install.py`. Existing credential files, different private configurations, and conflicting MCP entries are preserved.
-- Python cannot create the virtual environment: install the operating system's `venv` support or select a supported Python interpreter.
-- Missing configuration: complete step 2; do not change Canvas interface feature switches.
-- Fake-IP proxy: by default private download addresses are blocked. If required by the local proxy, explicitly allow only verified Canvas content domains using `proxy_fake_ip_domains`; see `canvas.example.toml` and the [official domain list](https://community.instructure.com/en/kb/articles/485223-canvas-domain-email-and-server-management).
-- OAuth token expired: refresh it through the institution's approved authorization system; automatic refresh is not implemented by this preview.
+## 第四步：试着查一次课程
 
-Codex's supported registration command and configuration are described in the [official OpenAI MCP documentation](https://developers.openai.com/codex/mcp).
+按完成提示重新打开 Codex 或重新连接工具，然后新建聊天，发送：
+
+```text
+列出我的 Canvas 课程。
+```
+
+**出现自己的课程列表，就可以用了。** 只看到“安装完成”还不代表学校账号已经连上。
+
+## 遇到这些提示怎么办？
+
+| 看到的提示 | 下一步 |
+| --- | --- |
+| 找不到 Python / 版本太旧 | 让 Codex 安装 Python 3.11 或更新版本，再运行向导。 |
+| 没有找到 Codex 命令 | 把向导最后给出的那句话发给 Codex，让它完成工具注册。 |
+| 工具已装好，还没连接学校账号 | 准备好授权文件，再运行一次向导。 |
+| 暂时连不上学校 | 让 Codex 检查学校网址、网络和授权是否过期。 |
+| 这次安装没有完成 | 把提示中的本机日志位置告诉 Codex，让它检查。不要公开日志或密钥。 |
+
+已经有设置时，向导会继续使用。换学校、换账号或出现名称冲突时，让 Codex 帮你调整。给安装 agent 的详细步骤见 [AGENTS.md](AGENTS.md) 和 [技术参考](ADVANCED.md)。

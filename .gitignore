@@ -21,3 +21,4 @@ verification-*.local.json
 /publish-payload.local.json
 .DS_Store
 *.log
+/.canvas-setup.local.json

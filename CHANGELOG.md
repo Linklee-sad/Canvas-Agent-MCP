@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- Beginner guides with short install prompts, clear account prerequisites, and practical troubleshooting.
+- Guided setup for Codex and DeepSeek, with plain-language progress and separate connection status.
+- Fixed DeepSeek launch command backed by a private local setup record; no patch paths to copy.
+- Installer JSON output for automation; advanced deployment details moved to ADVANCED.md.
+
 ## 0.4.0
 
 - DeepSeek Harness installation entry point and opt-in Cordis MCP overlay export.

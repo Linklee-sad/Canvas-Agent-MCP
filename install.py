@@ -20,6 +20,7 @@ def run(command, capture=False):
 def main():
     parser = argparse.ArgumentParser(description="Install Canvas Agent Bridge and optionally connect Codex")
     parser.add_argument("--register-codex", action="store_true")
+    parser.add_argument("--json", action="store_true", help="Keep stdout as a single JSON result for installer helpers")
     parser.add_argument("--deepseek", action="store_true", help="Export an opt-in DeepSeek Harness Cordis overlay")
     parser.add_argument("--deepseek-output", type=Path)
     parser.add_argument("--deepseek-profile", default="web")
@@ -39,8 +40,8 @@ def main():
     python = target / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     if not python.is_file():
         venv.EnvBuilder(with_pip=True).create(target)
-    run([str(python), "-m", "pip", "install", "-r", str(ROOT / "requirements.lock")])
-    run([str(python), "-m", "pip", "install", str(ROOT)])
+    run([str(python), "-m", "pip", "install", "-r", str(ROOT / "requirements.lock")], args.json)
+    run([str(python), "-m", "pip", "install", str(ROOT)], args.json)
     base = [str(python), "-m", "canvas_bridge"]
     summary = {"installed": True, "python": str(python), "self_test": json.loads(run(base + ["self-test"], True).stdout)}
     config_path = args.config_path.expanduser().absolute() if args.config_path else None
