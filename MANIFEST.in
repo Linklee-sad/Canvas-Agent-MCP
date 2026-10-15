@@ -1,0 +1,15 @@
+include README.md DEPLOY.md AUTHENTICATION.md AGENTS.md LICENSE CHANGELOG.md
+include requirements.lock install.py server.py canvas.example.toml mcp-config.example.json
+recursive-include canvas_bridge *.py
+recursive-include tests *.py
+include scripts/package_release.py
+include .gitignore .github/workflows/ci.yml
+prune .venv
+prune .canvas-cache
+prune .release
+prune dist
+prune build
+exclude canvas.toml canvas.local.toml mcp-config.json api_key* *.token
+exclude verification*.json release-manifest.local.json publish-payload.local.json
+exclude scripts/verify_live.py scripts/verify_workflows.py
+global-exclude __pycache__ *.py[cod] .DS_Store

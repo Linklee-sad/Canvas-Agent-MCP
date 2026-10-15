@@ -1,0 +1,8 @@
+# Copy to a private configuration file; never commit real account settings.
+base_url = "https://canvas.example.edu"
+token_file = "credentials.token"
+cache_dir = "cache"
+timezone = "UTC"
+timeout_seconds = 30
+max_download_mb = 50
+proxy_fake_ip_domains = []

@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "canvas-agent-bridge"
+version = "0.3.0"
+description = "Personal, read-only Canvas LMS MCP and CLI"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = ["mcp>=1.20,<2", "pypdf>=6,<7", "python-pptx>=1,<2", "tzdata>=2025.1; sys_platform == 'win32'"]
+
+[project.urls]
+Repository = "https://github.com/Linklee-sad/Canvas-Agent-MCP"
+Issues = "https://github.com/Linklee-sad/Canvas-Agent-MCP/issues"
+
+[project.scripts]
+canvas-bridge = "canvas_bridge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["canvas_bridge*"]

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "canvas": {
+      "command": "<absolute path to your virtual environment Python>",
+      "args": ["-m", "canvas_bridge", "serve"],
+      "env": {
+        "CANVAS_CONFIG": "<absolute path to your private config.toml>"
+      }
+    }
+  }
+}
