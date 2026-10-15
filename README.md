@@ -1,6 +1,6 @@
 # Canvas Agent Bridge
 
-A local, read-only Canvas LMS MCP server for Codex and other MCP clients.
+A local, read-only Canvas LMS MCP server for Codex, DeepSeek Harness, and other MCP clients.
 
 让 Codex 读取 Canvas 课程、作业、公告和课件，汇总跨课程待办，并准备单个作业的参考材料。支持 PDF、PPTX、DOCX 和文本的分段读取。Python 3.11+；macOS、Linux、Windows。
 
@@ -21,6 +21,18 @@ python3 install.py --register-codex
 Windows 使用 `py -3 install.py --register-codex`。安装脚本也支持从其他工作目录通过绝对路径调用。它不会覆盖冲突的 MCP 服务或不同的私有配置；可用 `--name canvas-lms` 指定其他服务名。
 
 **安装与 Canvas 授权分开。** 本项目目前是个人开发预览，读取已有的机构批准凭据，尚未实现 OAuth 登录和自动刷新。其他使用者必须配置自己的授权，仓库不附带任何账号。多人正式应用需要机构批准的 OAuth 接入，详见 [AUTHENTICATION.md](AUTHENTICATION.md) 和 [Canvas 官方说明](https://developerdocs.instructure.com/services/canvas/oauth2/file.oauth)。
+
+## DeepSeek Harness 版本
+
+同一仓库提供 DeepSeek Harness 专用入口，支持相同的 14 个工具。把下面这段话交给安装 agent：
+
+> 请把 https://github.com/Linklee-sad/Canvas-Agent-MCP 安装到 DeepSeek Harness。先读 AGENTS.md 和 DEEPSEEK.md，运行 install_deepseek.py，生成独立 Cordis overlay 并验证工具发现。保留已有 Harness 配置；凭据只通过本地私有文件配置，不要贴进聊天。
+
+```bash
+python3 install_deepseek.py
+```
+
+脚本返回 overlay 路径和 `launch_argv`；用 `dsh --profile web --patch <overlay绝对路径>` 启动。导出不会启动 Harness，也不会修改已有 profile；详细步骤、headless 用法和验证边界见 [DEEPSEEK.md](DEEPSEEK.md)。
 
 ## 连接自己的 Canvas
 

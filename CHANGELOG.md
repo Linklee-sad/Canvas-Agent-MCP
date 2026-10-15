@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- DeepSeek Harness installation entry point and opt-in Cordis MCP overlay export.
+- Client-specific configuration with portable module commands and credential-file references.
+- Dedicated DeepSeek deployment guide; exports preserve existing profile and overlay files.
+
 ## 0.3.0
 
 - Portable installation script and MCP configuration for macOS, Linux, and Windows.

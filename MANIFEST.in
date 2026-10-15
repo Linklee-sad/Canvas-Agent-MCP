@@ -1,8 +1,10 @@
 include README.md DEPLOY.md AUTHENTICATION.md AGENTS.md LICENSE CHANGELOG.md
+include DEEPSEEK.md install_deepseek.py
 include requirements.lock install.py server.py canvas.example.toml mcp-config.example.json
 recursive-include canvas_bridge *.py
 recursive-include tests *.py
 include scripts/package_release.py
+include scripts/verify_deepseek.mjs
 include .gitignore .github/workflows/ci.yml
 prune .venv
 prune .canvas-cache

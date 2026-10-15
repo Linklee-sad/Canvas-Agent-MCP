@@ -10,9 +10,9 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parent.parent
-FIXED = ("README.md", "DEPLOY.md", "AUTHENTICATION.md", "AGENTS.md", "LICENSE", "CHANGELOG.md",
-         "pyproject.toml", "requirements.lock", "MANIFEST.in", "install.py", "server.py", ".gitignore",
-         "canvas.example.toml", "mcp-config.example.json", "scripts/package_release.py", ".github/workflows/ci.yml")
+FIXED = ("README.md", "DEPLOY.md", "DEEPSEEK.md", "AUTHENTICATION.md", "AGENTS.md", "LICENSE", "CHANGELOG.md",
+         "pyproject.toml", "requirements.lock", "MANIFEST.in", "install.py", "install_deepseek.py", "server.py", ".gitignore",
+         "canvas.example.toml", "mcp-config.example.json", "scripts/package_release.py", "scripts/verify_deepseek.mjs", ".github/workflows/ci.yml")
 
 
 def public_files(root=ROOT):

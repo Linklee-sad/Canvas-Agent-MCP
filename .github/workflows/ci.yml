@@ -33,3 +33,27 @@ jobs:
       - run: python -m canvas_bridge self-test
       - run: python scripts/package_release.py
       - run: python -m build
+
+  deepseek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: python -m pip install -r requirements.lock
+      - run: python -m pip install .
+      - name: Install official Harness for integration testing
+        run: npm install --prefix "$RUNNER_TEMP/deepseek-harness" --ignore-scripts --no-audit --no-fund @deepseek-ai/dsh@0.2.1-alpha.3
+      - name: Export an isolated Canvas overlay
+        run: |
+          python -c "import os; from pathlib import Path; (Path(os.environ['RUNNER_TEMP']) / 'fixture.token').write_text('integration-fixture-only')"
+          python -m canvas_bridge configure --base-url https://canvas.example.edu --token-file "$RUNNER_TEMP/fixture.token" --config-path "$RUNNER_TEMP/fixture.toml"
+          python -m canvas_bridge export-deepseek --config-path "$RUNNER_TEMP/fixture.toml" --output "$RUNNER_TEMP/canvas.cordis.patch.yml"
+      - name: Discover 14 tools through the official Harness client
+        run: node scripts/verify_deepseek.mjs --harness-package "$RUNNER_TEMP/deepseek-harness/node_modules/@deepseek-ai/dsh/package.json" --overlay "$RUNNER_TEMP/canvas.cordis.patch.yml"

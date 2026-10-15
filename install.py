@@ -20,6 +20,9 @@ def run(command, capture=False):
 def main():
     parser = argparse.ArgumentParser(description="Install Canvas Agent Bridge and optionally connect Codex")
     parser.add_argument("--register-codex", action="store_true")
+    parser.add_argument("--deepseek", action="store_true", help="Export an opt-in DeepSeek Harness Cordis overlay")
+    parser.add_argument("--deepseek-output", type=Path)
+    parser.add_argument("--deepseek-profile", default="web")
     parser.add_argument("--name", default="canvas")
     parser.add_argument("--venv", type=Path, default=ROOT / ".venv")
     parser.add_argument("--config-path", type=Path)
@@ -54,6 +57,13 @@ def main():
         if config_path:
             command += ["--config-path", str(config_path)]
         summary["codex"] = json.loads(run(command, True).stdout)
+    if args.deepseek:
+        command = base + ["export-deepseek", "--name", args.name, "--profile", args.deepseek_profile]
+        if config_path:
+            command += ["--config-path", str(config_path)]
+        if args.deepseek_output:
+            command += ["--output", str(args.deepseek_output.expanduser().absolute())]
+        summary["deepseek"] = json.loads(run(command, True).stdout)
     if args.check_connection:
         environment = os.environ.copy()
         if config_path:

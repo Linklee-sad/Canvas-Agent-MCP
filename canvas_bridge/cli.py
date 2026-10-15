@@ -17,7 +17,10 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("serve", help="启动 MCP stdio 服务")
     commands.add_parser("doctor", help="检查配置并连接 Canvas")
-    commands.add_parser("config", help="打印不含令牌的 MCP 客户端配置")
+    config_parser = commands.add_parser("config", help="打印不含令牌的 MCP 客户端配置")
+    config_parser.add_argument("--client", choices=("codex", "deepseek"), default="codex")
+    config_parser.add_argument("--name", default="canvas")
+    config_parser.add_argument("--config-path")
     configure_parser = commands.add_parser("configure", help="配置学校地址、时区和已有授权凭据文件路径")
     configure_parser.add_argument("--base-url")
     configure_parser.add_argument("--token-file")
@@ -27,6 +30,11 @@ def main():
     register_parser = commands.add_parser("register-codex", help="注册到本机 Codex，不向配置写入令牌")
     register_parser.add_argument("--name", default="canvas")
     register_parser.add_argument("--config-path")
+    deepseek_parser = commands.add_parser("export-deepseek", help="导出 DeepSeek Harness Cordis overlay，保留现有 profile")
+    deepseek_parser.add_argument("--name", default="canvas")
+    deepseek_parser.add_argument("--config-path")
+    deepseek_parser.add_argument("--output")
+    deepseek_parser.add_argument("--profile", default="web")
     commands.add_parser("self-test", help="离线验证 MCP 启动和工具列表，不访问 Canvas")
     call_parser = commands.add_parser("call", help="调用工具，参数用 JSON 传入")
     call_parser.add_argument("tool", choices=TOOLS)
@@ -36,11 +44,18 @@ def main():
         from .server import main as serve
         serve()
         return
-    if args.command == "config":
-        from .deployment import mcp_configuration
-        print(json.dumps(mcp_configuration(), ensure_ascii=False, indent=2))
-        return
     try:
+        if args.command == "config":
+            from .deployment import mcp_configuration
+            from .deepseek import deepseek_configuration
+            factory = deepseek_configuration if args.client == "deepseek" else mcp_configuration
+            print(json.dumps(factory(args.name, args.config_path), ensure_ascii=False, indent=2))
+            return
+        if args.command == "export-deepseek":
+            from .deepseek import export_deepseek
+            result = export_deepseek(args.name, args.config_path, args.output, args.profile)
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return
         if args.command in ("configure", "register-codex", "self-test"):
             from .deployment import configure, register_codex, self_test
             if args.command == "configure":
