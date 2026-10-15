@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0
+
+- Private project-local JSON account file with school URL and api_key fields.
+- Wizard creates a blank account file automatically; clients reference it directly without copying keys.
+- JSON credential-file support, UTF-8 BOM handling, and filled-template publication protection.
+
 ## 0.5.0
 
 - Beginner guides with short install prompts, clear account prerequisites, and practical troubleshooting.

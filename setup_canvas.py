@@ -84,7 +84,15 @@ def run_setup(client, *, base_url=None, token_file=None, timezone="Asia/Hong_Kon
     print("[2/3] 功能检查通过：14 项功能可以启动。", flush=True)
     print("[3/3] 正在检查你的 Canvas 连接……", flush=True)
     account_ok = False
-    if config.is_file():
+    json_pending = False
+    if config.is_file() and config.suffix.lower() == ".json":
+        try:
+            from canvas_bridge.config import read_config_data
+            _, account = read_config_data(config)
+            json_pending = not (account.get("base_url") and (account.get("api_key") or account.get("token_file")))
+        except BridgeError:
+            pass
+    if config.is_file() and not json_pending:
         environment = os.environ.copy()
         environment["PYTHONUTF8"] = "1"
         environment["CANVAS_CONFIG"] = str(config)
@@ -102,6 +110,11 @@ def run_setup(client, *, base_url=None, token_file=None, timezone="Asia/Hong_Kon
     print("\n安装完成。")
     if account_ok:
         print("Canvas 连接成功，已经可以读取你的课程。")
+    elif json_pending:
+        print("工具已装好。现在用文本编辑器打开这个文件：")
+        print("  " + str(config))
+        print("填写 base_url（学校 https:// 网址）和 api_key（你自己的 key），保存后让助手查询课程即可。")
+        print("不要把 key 发到聊天里，也不要上传这个文件。")
     elif not config.is_file():
         print("工具已装好；还没连接学校账号。拿到已有授权文件后，再运行一次这个向导即可。")
     else:
@@ -147,7 +160,19 @@ def main(argv=None):
         raise ValueError("学校网址和授权文件路径需要一起提供。没有授权文件时可以先不填。")
     from canvas_bridge.config import default_config_path
     config = local_path(str(args.config_path or default_config_path()))
-    if not args.base_url and config.exists():
+    if not args.config_path and not os.environ.get("CANVAS_CONFIG") and not args.base_url and not config.exists():
+        config = ROOT / "canvas-account.local.json"
+    if not args.base_url and config.suffix.lower() == ".json" and not config.exists():
+        from canvas_bridge.config import BridgeError, ensure_account_file
+        try:
+            ensure_account_file(config)
+        except BridgeError as error:
+            raise ValueError(str(error)) from None
+    if not args.base_url and config.suffix.lower() == ".json":
+        print("账号文件：" + str(config))
+        print("用文本编辑器打开，只在双引号里填写 base_url（学校网址）和 api_key（你自己的 key），保存即可。")
+        print("不要把 key 发到聊天里，也不要上传这个文件。")
+    elif not args.base_url and config.exists():
         print("检测到已有 Canvas 设置，将继续使用。")
     elif not args.base_url and sys.stdin.isatty():
         print("如果已有学校批准的授权文件，可以现在连接；没有的话直接回车跳过。")

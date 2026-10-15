@@ -2,6 +2,12 @@
 
 日常使用请先看 [首页](README.md)。下面保留详细参数与验证说明。
 
+## 项目内的账号 JSON
+
+`canvas-account.local.json` 支持 `base_url`、`api_key`、`timezone`，可直接用作 `CANVAS_CONFIG` 或向导的 `--config-path`。例如 `python setup_canvas.py --client deepseek --config-path ./canvas-account.local.json`。填写后无需再传 `--base-url` 或 `--token-file`；key 不会进入命令参数。`read_token` 也支持从 JSON 的 `api_key` 读取，保留原有凭据文件工作流。
+
+新安装在没有现有设置时由向导创建此文件，并将绝对路径固定到客户端。已有 `CANVAS_CONFIG`、源码 `canvas.toml`、已存在的用户配置文件优先保留；之后才选择源码目录里的本地 JSON。已有同名客户端配置指向别处时应换一个 `--name`，不要覆盖。公开示例始终留空，填写后的本地文件排除在 Git 和分发包之外。
+
 ## Codex 详细部署
 
 # Codex deployment guide

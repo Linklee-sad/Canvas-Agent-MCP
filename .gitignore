@@ -22,3 +22,4 @@ verification-*.local.json
 .DS_Store
 *.log
 /.canvas-setup.local.json
+/canvas-account.local.json

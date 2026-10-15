@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import json
 import os
 from pathlib import Path
 import re
@@ -29,6 +30,12 @@ def default_config_path() -> Path:
     legacy = ROOT / "canvas.toml"
     if (ROOT / "pyproject.toml").is_file() and legacy.is_file():
         return legacy
+    existing_user = user_config_path()
+    if existing_user.is_file():
+        return existing_user
+    account = ROOT / "canvas-account.local.json"
+    if (ROOT / "pyproject.toml").is_file() and account.is_file():
+        return account
     return user_config_path()
 
 
@@ -36,7 +43,12 @@ def read_config_data(config_path=None):
     path = Path(config_path or default_config_path()).expanduser().absolute()
     try:
         if path.exists():
-            data = tomllib.loads(path.read_text(encoding="utf-8"))
+            if path.suffix.lower() == ".json":
+                data = json.loads(path.read_text(encoding="utf-8-sig"))
+                if not isinstance(data, dict):
+                    raise BridgeError("账号 JSON 格式不正确，请保留外层花括号，只填写双引号里的内容。")
+            else:
+                data = tomllib.loads(path.read_text(encoding="utf-8"))
         elif config_path or os.environ.get("CANVAS_CONFIG"):
             raise BridgeError("指定的 Canvas 配置文件不存在。")
         else:
@@ -48,16 +60,43 @@ def read_config_data(config_path=None):
     except BridgeError:
         raise
     except (OSError, ValueError):
-        raise BridgeError("无法加载配置，请检查 TOML 格式和文件权限。") from None
+        raise BridgeError("无法加载配置，请检查 JSON/TOML 格式和文件权限；不要把文件里的 key 发到聊天里。") from None
 
 
 class BridgeError(Exception):
     """An actionable error safe to show to the agent."""
 
 
+def ensure_account_file(path: Path) -> bool:
+    """Create a private blank account file, preserving anything already there."""
+    path = Path(path)
+    if path.is_symlink():
+        raise BridgeError("账号文件不能是符号链接，请使用普通的本地文件。")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        return False
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        json.dump({"base_url": "", "api_key": "", "timezone": "Asia/Hong_Kong"}, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    return True
+
+
+def validate_token(token):
+    if not isinstance(token, str) or not token or any(c.isspace() for c in token):
+        raise BridgeError("key 为空或包含空格、换行，请在本地账号文件中检查；不要将 key 发到聊天里。")
+    return token
+
+
 def read_token(path: Path) -> str:
     try:
-        if path.suffix.lower() == ".docx":
+        if path.suffix.lower() == ".json":
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+            if not isinstance(data, dict):
+                raise BridgeError("授权 JSON 格式不正确。")
+            token = data.get("api_key")
+        elif path.suffix.lower() == ".docx":
             with zipfile.ZipFile(path) as archive:
                 if archive.getinfo("word/document.xml").file_size > 1_000_000:
                     raise BridgeError("凭据文档过大，请使用只包含一个令牌的文件。")
@@ -76,11 +115,9 @@ def read_token(path: Path) -> str:
             token = path.read_text(encoding="utf-8").strip()
     except BridgeError:
         raise
-    except (OSError, KeyError, zipfile.BadZipFile, ET.ParseError):
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile, ET.ParseError):
         raise BridgeError("无法读取令牌文件，请检查 token_file 配置和文件格式。") from None
-    if not token or any(c.isspace() for c in token):
-        raise BridgeError("令牌为空或包含空白字符。")
-    return token
+    return validate_token(token)
 
 
 @dataclass
@@ -111,11 +148,17 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     try:
         base_url = os.environ.get("CANVAS_BASE_URL", data.get("base_url", ""))
         if not base_url:
+            if path.suffix.lower() == ".json":
+                raise BridgeError("请在本地账号 JSON 的 base_url 中填写学校 Canvas 的 https:// 网址。")
             raise BridgeError("尚未配置 Canvas 地址。请运行 canvas-bridge configure 或设置 CANVAS_BASE_URL。")
         token = os.environ.get("CANVAS_TOKEN")
+        if not token and path.suffix.lower() == ".json" and data.get("api_key"):
+            token = validate_token(data["api_key"])
         if not token:
             configured_file = os.environ.get("CANVAS_TOKEN_FILE", data.get("token_file", ""))
             if not configured_file:
+                if path.suffix.lower() == ".json":
+                    raise BridgeError("请在本地账号 JSON 的 api_key 中填写你自己的已授权 key，不要发到聊天里。")
                 raise BridgeError("尚未配置授权凭据。请使用学校批准的认证流程，并在本地配置 token_file 或 CANVAS_TOKEN。")
             token_path = Path(configured_file).expanduser()
             token = read_token(token_path if token_path.is_absolute() else path.parent / token_path)
@@ -132,4 +175,4 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     except BridgeError:
         raise
     except Exception:
-        raise BridgeError("无法加载配置，请检查 canvas.toml 的格式和时区设置。") from None
+        raise BridgeError("无法加载配置，请检查本地账号文件的格式和时区设置。") from None

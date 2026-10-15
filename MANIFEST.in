@@ -2,6 +2,7 @@ include README.md DEPLOY.md AUTHENTICATION.md AGENTS.md LICENSE CHANGELOG.md
 include DEEPSEEK.md install_deepseek.py
 include ADVANCED.md setup_canvas.py start_deepseek.py
 include requirements.lock install.py server.py canvas.example.toml mcp-config.example.json
+include canvas-account.example.json
 recursive-include canvas_bridge *.py
 recursive-include tests *.py
 include scripts/package_release.py
@@ -15,5 +16,6 @@ prune build
 exclude canvas.toml canvas.local.toml mcp-config.json api_key* *.token
 exclude verification*.json release-manifest.local.json publish-payload.local.json
 exclude .canvas-setup.local.json
+exclude canvas-account.local.json
 exclude scripts/verify_live.py scripts/verify_workflows.py
 global-exclude __pycache__ *.py[cod] .DS_Store

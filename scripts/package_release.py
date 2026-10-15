@@ -12,7 +12,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parent.parent
 FIXED = ("README.md", "DEPLOY.md", "DEEPSEEK.md", "ADVANCED.md", "AUTHENTICATION.md", "AGENTS.md", "LICENSE", "CHANGELOG.md",
          "pyproject.toml", "requirements.lock", "MANIFEST.in", "install.py", "install_deepseek.py", "setup_canvas.py", "start_deepseek.py", "server.py", ".gitignore",
-         "canvas.example.toml", "mcp-config.example.json", "scripts/package_release.py", "scripts/verify_deepseek.mjs", ".github/workflows/ci.yml")
+         "canvas.example.toml", "canvas-account.example.json", "mcp-config.example.json", "scripts/package_release.py", "scripts/verify_deepseek.mjs", ".github/workflows/ci.yml")
 
 
 def public_files(root=ROOT):
@@ -33,6 +33,14 @@ def audit(paths, root=ROOT, known_secret=None):
     for path in paths:
         relative = path.relative_to(root).as_posix()
         text = path.read_text(encoding="utf-8")
+        if path.suffix.lower() == ".json":
+            def contains_credential(value):
+                if isinstance(value, dict):
+                    return any((key.lower() in {"api_key", "token", "access_token", "client_secret"} and bool(item))
+                               or contains_credential(item) for key, item in value.items())
+                return isinstance(value, list) and any(contains_credential(item) for item in value)
+            if contains_credential(json.loads(text)):
+                raise ValueError("Publication audit failed for " + relative + "; a public JSON template contains a credential value.")
         if (known_secret and known_secret in text) or any(p.search(text) for p in patterns):
             raise ValueError("Publication audit failed for " + relative + "; contents were not printed.")
         records.append({"path": relative, "sha256": hashlib.sha256(text.encode()).hexdigest()})

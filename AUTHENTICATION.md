@@ -19,6 +19,10 @@ For Canvas Cloud, OAuth developer keys are issued by the institution's administr
 
 ## Local handling
 
+Personal developers and users with institution-approved credentials may store that existing credential in the private `canvas-account.local.json` file's `api_key` field, alongside `base_url` and `timezone`. The project never requests a raw key in chat, generates personal tokens for other users, or supplies an institutional OAuth flow. This local file format does not change the authorization requirements above.
+
+The wizard creates a blank local JSON file without overwriting existing credentials. The file is ignored by Git and excluded from distributions; only an empty `canvas-account.example.json` ships publicly. Release auditing rejects any nonempty credential field in a public JSON template. MCP settings reference the local file path rather than copying its key. Updating the local key takes effect on the next request.
+
 Only give an agent the credential file's path, not its contents. The file must be provisioned by the approved authorization process. Use a private directory with appropriate operating-system access permissions. Token files, caches, local configuration, and live verification reports are excluded from publication.
 
 The connector never forwards the Canvas Authorization header to another download origin. Signed download URLs are used internally and are not included in returned file metadata. Treat downloaded course content as data rather than instructions.

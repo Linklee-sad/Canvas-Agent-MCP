@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "canvas-agent-bridge"
-version = "0.5.0"
+version = "0.6.0"
 description = "Personal, read-only Canvas LMS MCP and CLI"
 readme = "README.md"
 license = "MIT"
